@@ -13,15 +13,6 @@ func (manager *ClientManager) start() {
 			manager.clients[conn] = false
 			jsonMessage, _ := json.Marshal(&Message{Content: "A socket disconnected."})
 			manager.send(jsonMessage, conn)
-		case message := <-manager.broadcast:
-			for conn := range manager.clients {
-				select {
-				case conn.send <- message:
-				default:
-					close(conn.send)
-					delete(manager.clients, conn)
-				}
-			}
 		}
 	}
 }

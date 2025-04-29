@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,7 +20,7 @@ func (c *Client) read() {
 		}
 
 		jsonMessage, _ := json.Marshal(&Message{Content: string(message), Sender: c.id})
-		manager.broadcast <- jsonMessage
+		rdb.Publish(ctx, channel, jsonMessage)
 	}
 }
 
@@ -28,8 +29,17 @@ func (c *Client) write() {
 		c.socket.Close()
 	}()
 
+	sub := rdb.Subscribe(ctx, channel)
+	defer sub.Close()
+	ch := sub.Channel()
+
 	for {
 		select {
+		case msg := <-ch:
+			if err := c.socket.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
+				fmt.Println("Write error:", err)
+				return
+			}
 		case message, ok := <-c.send:
 			if !ok {
 				c.socket.WriteMessage(websocket.CloseMessage, []byte{})

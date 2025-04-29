@@ -1,17 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
+)
+
+var (
+	ctx = context.Background()
+	rdb = redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	channel = "shared"
 )
 
 var manager = ClientManager{
 	register:   make(chan *Client),
 	unregister: make(chan *Client),
-	broadcast:  make(chan []byte),
 	clients:    make(map[*Client]bool),
 }
 

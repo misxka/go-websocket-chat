@@ -5,7 +5,6 @@ import "github.com/gorilla/websocket"
 type ClientManager struct {
 	register   chan *Client
 	unregister chan *Client
-	broadcast  chan []byte
 	clients    map[*Client]bool
 }
 
